@@ -3,7 +3,10 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdvancedController;
-use Auth;
+use App\Http\Controllers\EnlaceController;
+use App\Http\Controllers\EtiquetaController;
+use App\Http\Controllers\EnlaceEtiquetaController;
+// use Auth;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -36,6 +39,13 @@ Route::get('/salir', function () {
     return redirect('/');
 });
 
+Route::resource('enlace', EnlaceController::class);
+Route::resource('etiqueta', EtiquetaController::class);
 
+Route::get('enlace/visita/{enlace}', [App\Http\Controllers\EnlaceController::class, 'visita'])->name('visita');
+
+Route::resource('enlaceEtiqueta', EnlaceEtiquetaController::class);
+
+Route::get('enlaceEtiqueta/index}', [App\Http\Controllers\EnlaceEtiquetaController::class, 'indexnew'])->name('indexnew');
 
 

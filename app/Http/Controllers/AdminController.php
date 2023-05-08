@@ -11,7 +11,7 @@ class AdminController extends Controller
 {
     
     function __construct() {
-        $this-> middleware(\App\Http\Middleware\AdminMiddleware::class);
+        $this->middleware(\App\Http\Middleware\AdminMiddleware::class);
        
     }
     /**
@@ -20,9 +20,8 @@ class AdminController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function index() {
-        //
         $users = $this->getData();
-        return view('admin.index',['users'=>$users,'myUser'=>auth()->user()]);
+        return view('admin.index',['users' => $users, 'myUser' => auth()->user()]);
     }
 
     /**
@@ -31,9 +30,8 @@ class AdminController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function create() {
-        //
-        $types=['normal','advanced','admin'];
-        return view ('admin.create',['types'=>$types,'myUser'=>auth()->user()]);
+        $types = ['normal','advanced','admin'];
+        return view ('admin.create',['types' => $types, 'myUser' => auth()->user()]);
     }
 
     /**
@@ -43,17 +41,15 @@ class AdminController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request) {
-        //
         $request->validate([
             'name' => 'required',
             'email'=> 'required|unique:users,email|email',
-            'type'=>'required|in:normal,advanced,admin',
-            'password'=> 'required',
-            'passwordActual'=> 'required',
+            'type' => 'required|in:normal,advanced,admin',
+            'password' => 'required',
+            'passwordActual' => 'required',
         ]);
         $myUser = auth()->user();
-        if(Hash::check($request->passwordActual,$myUser->password) ) {
-                // return back()->with('message','contraseña coincide');
+        if(Hash::check($request->passwordActual, $myUser->password)) {
             $user = new User($request->all());
             $user->password = Hash::make($request->password);
             $user->save();
@@ -61,11 +57,6 @@ class AdminController extends Controller
         }else {
             return back()->with('error','contraseña Actual incorrecta')->withInput();
         }
-        
-        // $user = new User($request->all());
-        // $user->password = Hash::make($request->password);
-        // $user->save();
-        // return redirect('admin')->with('message','Usuario '.$user->name. ' creado Correctamente');
     }
 
     /**
@@ -81,9 +72,8 @@ class AdminController extends Controller
         if($user->type == 'admin' && $user->id !== $myUser->id) {
             return redirect('/admin');
         }else {
-            return view('admin.show',['user'=>$user,'myUser'=>auth()->user()]);
+            return view('admin.show',['user' => $user, 'myUser' => auth()->user()]);
         }
-        
     }
 
     /**
@@ -93,16 +83,19 @@ class AdminController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function edit($id) {
-        //
         $myUser = auth()->user();
-        $types=['normal','advanced','admin'];
+        $types = ['normal','advanced','admin'];
         $user = User::findOrFail($id);
+        if($myUser->id == $id) {
+            $type = $myUser->type;
+            $types = [$type];
+        }
         if($user->type == 'admin' && $user->id !== $myUser->id) {
              return redirect('/admin');
         }else {
-            return view('admin.edit',['user'=>$user,'types'=>$types,'myUser'=>auth()->user()]);
+            
+            return view('admin.edit',['user' => $user, 'types' => $types, 'myUser'=>auth()->user()]);
         }
-        
     }
 
     /**
@@ -113,35 +106,41 @@ class AdminController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, $id) {
-        //
         $request->validate([
-                'name' => 'required',
-                'email'=> 'required',
-                'type'=>'required|in:normal,advanced,admin',
-                'passwordActual'=>'required',
+            'name' => 'required',
+            'email' => 'required',
+            'type' => 'required|in:normal,advanced,admin',
+            'passwordActual' => 'required',
         ]);
         $user = User::findOrFail($id);
         $myUser = auth()->user();
-
-        if(Hash::check($request->passwordActual,$myUser->password) ) {
+        if(Hash::check($request->passwordActual, $myUser->password)) {
             $message;
-            if( !empty($request->password)) {
+            
+            if(!empty($request->password)) {
                 $password = Hash::make($request->password);
             }else {
-                $password= $user->password;
+                $password = $user->password;
             }
+            
+            if($request->email !== $user->email) {
+                
+                $user->email_verified_at = NULL;
+                // $user->update([
+                //     'email_verified_at' => NULL,
+                // ]);
+            }
+
             $user->update([
                 'name' => $request->name,
-                'type'=>$request->type,
+                'type' => $request->type,
                 'email' => $request->email,
-                'password'=>$password,
+                'password' => $password,
             ]);
             return back()->with('message','usuario actualizado Correctamente');
         }else {
             return back()->with('error','contraseña Actual incorrecta');
         }
-        
-        
     }
 
     /**
@@ -151,7 +150,6 @@ class AdminController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function destroy($id) {
-        //
         $user = User::findOrFail($id);
         $myUser = auth()->user();
         if($user->type == 'admin' && $user->id !== $myUser->id) {
@@ -160,15 +158,13 @@ class AdminController extends Controller
             $user->delete();
             return redirect('admin')->with('message','usuario '.$user->name.' borrado correctamente');
         }
-        
     }
     
     public function getData() {
-        $users= User::all();
-        $res=[];
-        foreach($users as $user){
-            // if($user->type !== 'admin' && $myUser->id !== $user->id && $user->type !=='advanced'){
-             if($user->type !== 'admin') {
+        $users = User::all();
+        $res = [];
+        foreach($users as $user) {
+            if($user->type !== 'admin') {
                 array_push($res,$user);
             }
         }

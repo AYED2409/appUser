@@ -14,10 +14,9 @@ class HomeController extends Controller
      *
      * @return void
      */
-    public function __construct()
-    {
-         $this->middleware('auth');
-         $this->middleware('verified', ['except' => ['index']]);
+    public function __construct() {
+        $this->middleware('auth');
+        $this->middleware('verified', ['except' => ['index']]);
     }
 
     /**
@@ -30,71 +29,45 @@ class HomeController extends Controller
     }
     
     public function show() {
-        return view ('user.show',['user'=>auth()->user()]);
+        return view ('user.show',['user' => auth()->user()]);
     }
     
     public function edit() {
-        return view ('user.edit',['user'=>auth()->user()]);
+        return view ('user.edit',['user' => auth()->user()]);
     }
     
     public function update(Request $request) {
         $request->validate([
-            'name'=>'required',
-            'email'=>'required',
-            'passwordActual'=>'required',
+            'name' => 'required',
+            'email' => 'required',
+            'passwordActual' => 'required',
         ]);
-        $message= 'datos actualizados correctamente';
+        $message = 'datos actualizados correctamente';
         $user = auth()->user();
-        // 
-        
-        if(Hash::check($request->passwordActual,$user->password) ) {
-            if($request->password ==null) {
+        if(Hash::check($request->passwordActual, $user->password)) {
+            if($request->email !== $user->email) {
+                $user->email_verified_at = NULL;
+            }
+            if($request->password == null) {
                 $user->update([
-                    'name'=>$request->name,
-                    'email'=>$request->email,
-                    'password'=>$user->password,
+                    'name' => $request->name,
+                    'email' => $request->email,
+                    'password' => $user->password,
                 ]);
             }else {
                 $user->update([
-                    'name'=>$request->name,
-                    'email'=>$request->email,
-                    'password'=>Hash::make($request->password),
+                    'name' => $request->name,
+                    'email' => $request->email,
+                    'password' => Hash::make($request->password),
                 ]);
                 Auth::logout();
                 return redirect('login');
             }
-               
         }else {
             $message = 'contraseña Actual incorrecta';
-            return back()->with(['error'=>$message]);
+            return back()->with(['error' => $message]);
         }
-        return back()->with('message',$message);
-        
-        
-        
-        
-        // if($request->password == null && $request->passwordActual == null){
-        //     $user->update([
-        //             'name'=>$request->name,
-        //             'email'=>$request->email,
-        //         ]);
-        // }else{
-        //     if(Hash::check($request->passwordActual, $user->password)) {
-        //     //   $message='contraseña correcta';
-        //       $user->update([
-        //             'name'=>$request->name,
-        //             'email'=>$request->email,
-        //             'password'=>Hash::make($request->password),
-        //         ]);
-        //         Auth::logout();
-        //         return redirect('login');
-        //     }else{
-        //         $message='Contraseña actual erronea';   
-        //         return back()->with(['error'=>$message]);
-        //     }
-            
-        // }
-        // return back()->with('message',$message);
+        return back()->with('message', $message);
     }
     
 }
